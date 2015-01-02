@@ -20,6 +20,12 @@ if [ -e $BUILD_DIR/extract-cd/.disk ] && [ -e extract-cd/.disk ]; then
 	sudo cp -r $BUILD_DIR/extract-cd/.disk extract-cd/
 fi
 
+if [ -e $BUILD_DIR/extract-cd/preseed ] && [ -e extract-cd/preseed ]; then
+	# Add preseed from extract-cd
+	sudo cp -r $BUILD_DIR/extract-cd/preseed/* extract-cd/preseed/
+fi
+
 # Update Initrd on ISO
 initrd_name=$(find extract-cd/$VER/ -iname "initrd*")
+echo "Updating $initrd_name..."
 sudo cp edit/boot/initrd* $initrd_name
