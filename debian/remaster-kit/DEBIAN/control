@@ -1,0 +1,10 @@
+Package: remaster-kit
+Version: 1.8.0-1
+Architecture: all
+Maintainer: Leszek Lesner <leszek@zevenos.com>
+Installed-Size: 635
+Depends: syslinux, xorriso, squashfs-tools
+Section: misc
+Priority: optional
+Description: Remaster application for ZevenOS/Neptune/Debian/Ubuntu
+ This package contains the remaster-kit application which allows you to remaster a debian/ubuntu based live system.

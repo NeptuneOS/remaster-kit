@@ -1,0 +1,8 @@
+etc/*	etc/
+usr/bin/*	usr/bin/
+usr/share/man/man1/*	usr/share/man/man1/
+usr/share/remaster-kit/* usr/share/remaster-kit/
+usr/share/doc/remaster-kit/example-build-scripts/*	usr/share/doc/remaster-kit/example-build-scripts/
+usr/share/doc/remaster-kit/example-build-scripts/extract-cd/boot/grub/*	usr/share/doc/remaster-kit/example-build-scripts/
+usr/share/doc/remaster-kit/example-build-scripts/extract-cd/isolinux/*	usr/share/doc/remaster-kit/example-build-scripts/extract-cd/isolinux/
+usr/share/doc/remaster-kit/example-build-scripts/extract-cd/.disk/*	usr/share/doc/remaster-kit/example-build-scripts/extract-cd/.disk/

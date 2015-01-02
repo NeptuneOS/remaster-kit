@@ -1,0 +1,1 @@
+espeak espeak-data gmusicbrowser gnome-sudoku gnome-mines thunderbird mugshot onboard onboard-data parole plymouth-theme-xubuntu-logo plymouth-theme-xubuntu-text xubuntu-artwork xubuntu-community-wallpapers xubuntu-default-settings xubuntu-live-settings xubuntu-live-settings

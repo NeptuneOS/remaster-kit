@@ -1,0 +1,64 @@
+remaster-kit (1.8.0-1) unstable; urgency=low
+
+  * Code cleanup
+  * Added autobuild option
+  * Added run-script option
+
+ -- Leszek Lesner <leszek@zevenos.com>  Fri, 02 Jan 2015 11:26:43 +0100
+
+remaster-kit (1.7.1-4) unstable; urgency=low
+
+  * Use efi.img for UEFI boot in ISO
+
+ -- Leszek Lesner <leszek@zevenos.com>  Tue, 23 Sep 2014 10:21:21 +0200
+
+remaster-kit (1.7.1-3) unstable; urgency=low
+
+  * Corrected mounting order first /dev then /dev/pts
+
+ -- Leszek Lesner <leszek@zevenos.com>  Mon, 05 May 2014 11:57:01 +0200
+
+remaster-kit (1.7.1-2) unstable; urgency=low
+
+  * Bugfix: Mount /dev and /dev/pts in chroot
+
+ -- Leszek Lesner <leszek@zevenos.com>  Sat, 03 May 2014 12:44:06 +0200
+
+remaster-kit (1.7.1-1) unstable; urgency=low
+
+  * Updated bash completion
+
+ -- Leszek Lesner <leszek@zevenos.com>  Thu, 24 Apr 2014 11:22:09 +0200
+
+remaster-kit (1.7.0-4) unstable; urgency=low
+
+  * Fixed md5sum creation for contents of iso
+  * Fixed not include boot.cat in md5 checksum on iso
+
+ -- Leszek Lesner <leszek@zevenos.com>  Wed, 15 Jan 2014 14:42:19 +0100
+
+remaster-kit (1.7.0-3) unstable; urgency=low
+
+  * Added manpage
+  * Added bash completions
+
+ -- Leszek Lesner <leszek@zevenos.com>  Fri, 26 Jul 2013 14:52:54 +0200
+
+remaster-kit (1.7.0-2) unstable; urgency=low
+
+  * Call isohybrid with sudo
+
+ -- Leszek Lesner <leszek@zevenos.com>  Fri, 26 Apr 2013 19:27:20 +0200
+
+remaster-kit (1.7.0-1) unstable; urgency=low
+
+  * Corrected dependency of isohybrid (syslinux)
+
+ -- Leszek Lesner <leszek@zevenos.com>  Fri, 26 Apr 2013 11:11:58 +0200
+
+remaster-kit (1.7.0-0) unstable; urgency=low
+
+  * Added hybridiso support and action
+  * Using genisoimage now as default iso creation tool
+
+ -- Leszek Lesner <leszek@zevenos.com>  Fri, 26 Apr 2013 11:06:01 +0200

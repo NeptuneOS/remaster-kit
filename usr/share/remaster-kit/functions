@@ -1,0 +1,229 @@
+#!/bin/bash
+
+VER=`awk 'NR==1' /etc/remaster-kit-config`
+SQFS=`awk 'NR==2' /etc/remaster-kit-config`
+MKISOFS="xorriso -as mkisofs"  # Set the mkisofs command here. On newer distributions it is called xorriso
+APT_CLEAN=true
+
+if [ -e build ]; then
+       	BUILD_DIR="build"
+elif [ -e remaster-kit-build ]; then
+       	BUILD_DIR="remaster-kit-build"
+fi
+
+chroot_prepare() {
+	sudo mv edit/etc/resolv.conf edit/etc/resolv.conf_remasterkit
+        sudo cp -i /etc/resolv.conf edit/etc/resolv.conf
+        echo "mount -t proc proc /proc ; mount -t sysfs sys /sys ; > /root/.bash_history ; rm /tmp/mount" > edit/tmp/mount
+        sudo chmod +x edit/tmp/mount
+        sudo chroot edit /tmp/mount
+        sudo mount -o bind /dev edit/dev
+        sudo mount -o bind /dev/pts edit/dev/pts
+}
+
+chroot_cleanup() {
+	sudo mv edit/etc/resolv.conf_remasterkit edit/etc/resolv.conf
+        if [ $APT_CLEAN = true ]; then 
+		sudo chroot edit apt-get clean
+	fi
+        sudo rm edit/root/.bash_history
+        sudo umount -l edit/dev/pts
+        sudo umount -l edit/dev
+        sudo umount -l edit/proc
+        sudo umount -l edit/sys
+}
+
+chroot_into() {
+	chroot_prepare
+	sudo chroot edit
+	chroot_cleanup
+}
+
+exec_in_chroot() {
+	chroot_prepare
+	sudo chroot edit $1
+        chroot_cleanup
+        }
+
+help1() {
+	echo "Usage: remaster-kit [OPTION]... "
+        echo "Remaster application for Debian/Ubuntu based distributions"
+	echo ""
+	printf "create PROJECTNAME ISONAME \t \t Create project called PROJECTNAME from ISONAME\n"
+	printf "open PROJECTNAME \t \t \t Cd and open PROJECTNAME folder in filemanager\n"
+	printf "chroot \t \t \t \t \t Chroots into the live system for manipulating\n"
+	printf "build VOLUMENAME ISONAME \t \t Create squashfs live system and build iso\n"
+	printf "buildiso VOLUMENAME ISONAME \t \t Rebuild just the iso without squashing the live system\n"
+	printf "hybridiso ISONAME \t \t \t Create an hybrid iso\n"
+	printf "clean \t \t \t \t \t Remove temporary files and unmount (usually used after create)\n"
+	printf "remove PROJECTNAME \t \t \t Remove all the project files\n"
+	printf "merge SNAPSHOTFILE \t \t \t Merge snapshot into projects live system\n"
+	printf "save-live PROJECTDIRECTORY \t \t Save Live Configuration as new live system\n"
+        printf "run-script SCRIPTNAME \t \t \t Run the provided SCRIPTNAME\n"
+        printf "autobuild PROJECTNAME ISONAME\t \t Automatically remaster and build ISO\n"
+	echo " "
+	echo "Remaster-Kit Version 1.8 by Leszek Lesner licensed under BSD"
+}
+
+create-project() {
+        # Create project directory
+	mkdir -p $1 		
+	# Link ISO to project directory
+	ln -s $(pwd)/$2 $1/ 	
+        # Check if build scripts were provided
+        if [ -e build ]; then
+		BUILD_DIR="build"
+	elif [ -e remaster-kit-build ]; then
+		BUILD_DIR="remaster-kit-build"
+	else 
+		NO_BUILD_DIR=true
+	fi
+        if [ "$NO_BUILD_DIR" != true ]; then
+		cp -r $BUILD_DIR $1/
+	fi
+	cd $1
+	# Create project subdirectories
+	mkdir -p edit squashfs extract-cd mnt 
+	echo "Created working directories"
+        # Mount ISO
+	sudo mount -o loop $2 mnt 
+	if [ $? -ne 0 ]; then
+		echo "Error mounting ISO"
+                cleanup
+		exit -1
+	else
+		echo "Mounted ISO"
+                # Copy ISO content
+		sudo rsync --exclude=/$VER/filesystem.squashfs -a mnt/ extract-cd 
+		echo "Copied files from mounted livecd to working directory"
+                # Mount live filesystem ## TODO: Make this configurable ##
+		sudo mount -t squashfs -o loop mnt/$VER/filesystem.squashfs squashfs 
+                if [ $? -ne 0 ]; then
+                	echo "Error mounting filesystem.squashfs"
+			cleanup
+			exit -1
+                else 
+			echo "Mounted Squashfs"
+			echo "Copying files from squashfs to working directory..."
+                	# Copy live filesystem
+			sudo cp -a squashfs/* edit/ 
+			echo "Copy completed"
+			echo ""
+			echo "You may now chroot in edit and start customize the livesystem"
+                        cleanup
+                fi
+	fi # Mount if
+}
+
+cleanup() {
+	sudo umount squashfs
+	sudo umount mnt
+}
+
+check_if_casper_or_live() {
+	if [ -e extract-cd/live ]; then
+		if [ "$VER" != "live" ]; then
+			if [ ! -e extract-cd/casper ]; then
+				echo "Assuming this is a debian live system. Using live directory for filesystem.squashfs."
+                                VER="live"
+                        fi # casper if
+                fi # ver != live if
+        elif [ -e extract-cd/casper ]; then
+		if [ "$VER" != "casper" ]; then
+			if [ ! -e extract-cd/live ]; then
+				echo "Assuming this is a ubuntu live system. Using casper directory for filesystem.squashfs."
+				VER="casper"
+			fi # live if
+		fi # ver != casper if
+        else 
+		echo "No live or casper directory found in extract-cd. Did you extract your live ISO ?"
+		exit -1
+        fi
+}
+
+run-script() {
+	if [ -e build ]; then
+		BUILD_DIR="build" 
+        elif [ -e remaster-kit-build ]; then
+		BUILD_DIR="remaster-kit-build"
+        else 
+                echo "No build or remaster-kit-build directory found."
+		exit -1
+	fi # dir if
+       	if [ "$1" == "presquashfs" ] && [ -e "$BUILD_DIR/presquashfs" ]; then
+		./$BUILD_DIR/presquashfs ;
+        fi
+        if [ "$1" == "postsquashfs" ] && [ -e "$BUILD_DIR/postsquashfs" ]; then
+		./$BUILD_DIR/postsquashfs ;
+        fi
+        if [ "$1" == "postiso" ] && [ -e "$BUILD_DIR/postiso" ]; then
+		./$BUILD_DIR/postiso ;
+	fi
+        # TODO: Some kind of error handling
+}
+
+create-squashfs() {
+	if [ -f extract-cd/$VER/filesystem.squashfs ]; then
+		read -p "Do you want to delete filesystem.squashfs (Y/n)?"
+		[ "$REPLY" == "n" ] || sudo rm extract-cd/$VER/filesystem.squashfs
+	fi
+	if [ "$SQFS" == "lzma" ]; then
+		sudo mksquashfs-lzma edit extract-cd/live/filesystem.squashfs -lzma 
+	elif [ "$SQFS" == "xz" ]; then
+		sudo mksquashfs edit extract-cd/$VER/filesystem.squashfs -comp xz 
+	elif [ "$SQFS" == "lzo" ]; then
+		sudo mksquashfs edit extract-cd/$VER/filesystem.squashfs -comp lzo
+	else
+		sudo mksquashfs edit extract-cd/$VER/filesystem.squashfs
+	fi
+	echo "LiveSystem packed in Filesystem.squashfs"
+}
+
+create-packagelist() {
+	sudo chmod a+w extract-cd/$VER/filesystem.manifest
+	sudo chroot edit dpkg-query -W --showformat='${Package} ${Version}\n' > extract-cd/$VER/filesystem.manifest
+	sudo cp extract-cd/$VER/filesystem.manifest extract-cd/$VER/filesystem.manifest-desktop
+	sudo sed -i '/ubiquity/d' extract-cd/$VER/filesystem.manifest-desktop
+	echo "Filesystem.manifest edited for ubiquity"
+}
+
+create-md5sum() {
+	cd extract-cd
+	# Create md5 sum for integrity check
+	sudo rm md5sum.txt
+	sudo find . -type f -print0 |xargs -0 md5sum | grep -v isolinux/boot.cat | sudo tee /tmp/md5sum.txt
+	sudo mv /tmp/md5sum.txt .
+        # ####
+        cd ..
+}
+
+create-iso() {
+        cd extract-cd
+        # ####
+	if [ -e boot/grub/efi.img ]; then
+		sudo $MKISOFS -r -V $1 -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat \
+-no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -o ../$2 .
+		cd ..;
+		read -p "Do you want to create an hybrid iso (useful for dd'ing onto USB Stick) (Y/n)?"
+			[ "$REPLY" == "n" ] || sudo isohybrid --uefi $2;
+	else
+		sudo $MKISOFS -r -V $1 -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ../$2 .
+		cd ..;
+		read -p "Do you want to create an hybrid iso (useful for dd'ing onto USB Stick) (Y/n)?"
+			[ "$REPLY" == "n" ] || sudo isohybrid $2;
+	fi
+        # Create md5sum for ISO
+	md5sum $2 > $2.md5
+}
+
+
+autobuild() {
+	create-project $1 $2
+	run-script presquashfs
+	create-squashfs
+        run-script postsquashfs
+	create-packagelist
+	create-md5sum
+	create-iso $1 $1-$(date +%y%m%d-%H%M).iso
+        run-script postiso
+}
