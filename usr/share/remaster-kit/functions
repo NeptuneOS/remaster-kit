@@ -191,7 +191,7 @@ create-md5sum() {
 	cd extract-cd
 	# Create md5 sum for integrity check
 	sudo rm md5sum.txt
-	sudo find . -type f -print0 |xargs -0 md5sum | grep -v isolinux/boot.cat | sudo tee /tmp/md5sum.txt
+	sudo find . -type f -print0 |xargs -0 md5sum | grep -v isolinux/boot.cat | grep -v isolinux/isolinux.bin | sudo tee /tmp/md5sum.txt
 	sudo mv /tmp/md5sum.txt .
         # ####
         cd ..
