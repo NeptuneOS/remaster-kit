@@ -5,3 +5,14 @@ source /usr/share/remaster-kit/functions
 ./$BUILD_DIR/addsourceslist.sh
 ./$BUILD_DIR/removepackages.sh
 ./$BUILD_DIR/addpackages.sh
+
+# Copy all chroot script files from build dir and execute in chroot
+files=$(ls $BUILD_DIR/*.chroot 2> /dev/null | wc -l)
+if [ -e edit ] && [ **"$files" != "0"** ]; then
+        echo "I: Found chroot files copying to live chroot for executing"
+        cp $BUILD_DIR/*.chroot edit/tmp/
+        echo "cd /tmp ; for f in *.chroot ; do bash \"\$f\" ; done" > edit/tmp/exec_chroot
+        chmod +x edit/tmp/exec_chroot
+        exec_in_chroot "./tmp/exec_chroot"
+        rm edit/tmp/*.chroot edit/tmp/exec_chroot
+fi
