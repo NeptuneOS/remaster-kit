@@ -1,3 +1,10 @@
+remaster-kit (1.8.1) unstable; urgency=medium
+
+  * Set LC_ALL=C for chroot execute
+  * Don't md5sum isolinux.bin
+
+ -- Leszek Lesner <leszek@zevenos.com>  Fri, 28 Apr 2017 16:48:05 +0200
+
 remaster-kit (1.8.0) unstable; urgency=low
 
   * Code cleanup
