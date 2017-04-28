@@ -35,7 +35,7 @@ chroot_cleanup() {
 
 chroot_into() {
 	chroot_prepare
-	sudo chroot edit
+	LC_ALL=C sudo chroot edit
 	chroot_cleanup
 }
 
