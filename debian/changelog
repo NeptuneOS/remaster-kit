@@ -1,4 +1,4 @@
-remaster-kit (1.8.0-1) unstable; urgency=low
+remaster-kit (1.8.0) unstable; urgency=low
 
   * Code cleanup
   * Added autobuild option
