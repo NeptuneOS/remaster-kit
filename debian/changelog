@@ -1,3 +1,9 @@
+remaster-kit (1.8.2) buster; urgency=medium
+
+  * Create sha256sum for ISO
+
+ -- Leszek Lesner <leszek@zevenos.com>  Tue, 30 Jun 2020 13:15:04 +0200
+
 remaster-kit (1.8.1) unstable; urgency=medium
 
   * Set LC_ALL=C for chroot execute
