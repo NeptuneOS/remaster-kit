@@ -216,6 +216,8 @@ create-iso() {
 	fi
         # Create md5sum for ISO
 	md5sum $2 > $2.md5
+        # Create sha256sum for ISO
+        sha256sum $2 > $2.sha256
 }
 
 
